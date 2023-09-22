@@ -55,12 +55,11 @@ class App extends Component {
   };
 
   componentDidUpdate(prevProps, prevState) {
-    const { currentQuery, currentPage, hasSearched } = this.state; // Використовуйте поточний запит для порівняння
+    const { currentQuery, currentPage } = this.state; // Використовуйте поточний запит для порівняння
 
     if (
-      (currentQuery !== prevState.currentQuery || // Порівнюйте поточний запит
-      currentPage !== prevState.currentPage) &&
-      hasSearched // Додайте перевірку, чи був виконаний пошук
+      currentQuery !== prevState.currentQuery || // Порівнюйте поточний запит
+      currentPage !== prevState.currentPage
     ) {
       this.fetchImages(currentQuery, currentPage);
     }
@@ -70,9 +69,9 @@ class App extends Component {
     this.setState({
       images: [], // Очищаємо зображення при новому пошуковому запиті
       currentPage: 1, // Скидаємо сторінку до першої при новому пошуковому запиті
-      currentQuery: query, // Зберігаємо поточний запит
-      hasSearched: true, // Позначаємо, що був виконаний пошук
     });
+
+    
   };
 
   onPageUpload = () => {
