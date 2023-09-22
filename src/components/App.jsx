@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Notiflix from 'notiflix';
-import API from './API/PixabayService'
+import API from './API/PixabayService';
 
 import ImageGallery from './Modules/ImageGallery/ImageGallery';
 import SearchBar from './Modules/Searchbar/Searchbar';
@@ -13,11 +13,11 @@ class App extends Component {
     modal: { isOpen: false, largeImageURL: '' },
     images: [],
     totalImages: 0,
-    searchQuery: '',
     currentPage: 1,
     loading: false,
     error: false,
-    hasSearched: false, 
+    hasSearched: false,
+    currentQuery: '', // Додайте поле для збереження поточного пошукового запиту
   };
 
   setSearchFlag = () => {
@@ -26,7 +26,7 @@ class App extends Component {
 
   fetchImages = async (query, page) => {
     try {
-      this.setState({ loading: true });
+      this.setState({ loading: true, currentQuery: query }); // Оновлюємо поточний запит
 
       const data = await API(query, page);
 
@@ -54,23 +54,33 @@ class App extends Component {
     }
   };
 
+  componentDidUpdate(prevProps, prevState) {
+    const { currentQuery, currentPage } = this.state; // Використовуйте поточний запит для порівняння
+
+    if (
+      currentQuery !== prevState.currentQuery || // Порівнюйте поточний запит
+      currentPage !== prevState.currentPage
+    ) {
+      this.fetchImages(currentQuery, currentPage);
+    }
+  }
+
   onSubmitSearch = query => {
     this.setState({
-      searchQuery: query,
-      images: [],
-      currentPage: 1,
+      images: [], // Очищаємо зображення при новому пошуковому запиті
+      currentPage: 1, // Скидаємо сторінку до першої при новому пошуковому запиті
     });
+
     this.fetchImages(query, 1);
   };
 
   onPageUpload = () => {
-    const { searchQuery, currentPage, hasSearched } = this.state;
+    const { currentQuery, currentPage, hasSearched } = this.state;
 
     if (hasSearched && currentPage * 12 < this.state.totalImages) {
       this.setState(prev => ({
         currentPage: prev.currentPage + 1,
       }));
-      this.fetchImages(searchQuery, currentPage + 1);
     }
   };
 
