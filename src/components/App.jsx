@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
 import Notiflix from 'notiflix';
 import API from './API/PixabayService'
 
@@ -7,7 +7,6 @@ import SearchBar from './Modules/Searchbar/Searchbar';
 import Button from './Modules/Button/Button';
 import { Loader } from './Modules/Loader/Loader';
 import Modal from './Modules/Modal/Modal';
-
 
 class App extends Component {
   state = {
@@ -18,34 +17,12 @@ class App extends Component {
     currentPage: 1,
     loading: false,
     error: false,
+    hasSearched: false, 
   };
 
-  componentDidUpdate = async (_, prevState) => {
-    const { searchQuery, currentPage } = this.state;
-    if (
-      searchQuery !== prevState.searchQuery ||
-      currentPage !== prevState.currentPage
-    ) {
-      this.fetchImages(searchQuery, currentPage);
-    }
-  };
 
-  
-  onSubmitSearch = query => {
-    this.setState({
-      searchQuery: query,
-      images: [],
-      currentPage: 1,
-    });
-    this.fetchImages(query, 1);
-   
-  };
-
-  onPageUpload = () => {
-    this.setState(prev => ({
-      currentPage: prev.currentPage + 1,
-    }));
-    this.fetchImages(this.state.searchQuery, this.state.currentPage + 1);
+  setSearchFlag = () => {
+    this.setState({ hasSearched: true });
   };
 
   fetchImages = async (query, page) => {
@@ -56,17 +33,22 @@ class App extends Component {
 
       if (data.totalHits === 0) {
         Notiflix.Notify.warning(
-          `There is no results upon your ${query}, please try again...`
+          `There are no results for your query "${query}", please try again...`
         );
         return;
       }
 
       this.setState(prevState => {
         return {
-          images: [...prevState.images, ...data.hits],
+          images: page === 1 ? data.hits : [...prevState.images, ...data.hits],
           totalImages: data.totalHits,
         };
       });
+
+
+      if (page === 1) {
+        this.setSearchFlag();
+      }
     } catch (error) {
       this.setState({ error: true });
     } finally {
@@ -74,27 +56,29 @@ class App extends Component {
     }
   };
 
-  //work with modal
-  onModalOpen = data => {
+  onSubmitSearch = query => {
     this.setState({
-      modal: {
-        isOpen: true,
-        largeImageURL: data,
-      },
+      searchQuery: query,
+      images: [],
+      currentPage: 1,
     });
+    this.fetchImages(query, 1);
   };
 
-  onModalClose = () => {
-    this.setState({
-      modal: {
-        isOpen: false,
-        largeImageURL: '',
-      },
-    });
+  onPageUpload = () => {
+    const { searchQuery, currentPage, hasSearched } = this.state;
+
+    if (hasSearched) {
+      this.setState(prev => ({
+        currentPage: prev.currentPage + 1,
+      }));
+      this.fetchImages(searchQuery, currentPage + 1);
+    }
   };
+
 
   render() {
-    const { images, loading,totalImages, modal } = this.state;
+    const { images, loading, totalImages, modal } = this.state;
     const showBtn = !loading && images.length !== totalImages;
 
     return (
@@ -104,7 +88,6 @@ class App extends Component {
         {images.length > 0 && (
           <ImageGallery images={images} onModalOpen={this.onModalOpen} />
         )}
-        
 
         {showBtn && <Button onPageUpload={this.onPageUpload} />}
 
