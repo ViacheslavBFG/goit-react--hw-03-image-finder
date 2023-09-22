@@ -20,7 +20,6 @@ class App extends Component {
     hasSearched: false, 
   };
 
-
   setSearchFlag = () => {
     this.setState({ hasSearched: true });
   };
@@ -45,7 +44,6 @@ class App extends Component {
         };
       });
 
-
       if (page === 1) {
         this.setSearchFlag();
       }
@@ -68,14 +66,13 @@ class App extends Component {
   onPageUpload = () => {
     const { searchQuery, currentPage, hasSearched } = this.state;
 
-    if (hasSearched) {
+    if (hasSearched && currentPage * 12 < this.state.totalImages) {
       this.setState(prev => ({
         currentPage: prev.currentPage + 1,
       }));
       this.fetchImages(searchQuery, currentPage + 1);
     }
   };
-
 
   render() {
     const { images, loading, totalImages, modal } = this.state;
